@@ -1,0 +1,23 @@
+- hosts: web
+  become: yes
+  tasks:
+    - name: Install Docker
+      apt:
+        name: docker.io
+        update_cache: yes
+        state: present
+
+    - name: Stop old container if running
+      shell: |
+        docker ps -q --filter "name=devops_app" | xargs -r docker stop
+
+    - name: Remove old container if exists
+      shell: |
+        docker ps -a -q --filter "name=devops_app" | xargs -r docker rm
+
+    - name: Pull latest image
+      shell: docker pull janhavi001/devops-insights:{{ lookup('env', 'GIT_COMMIT') }}
+
+    - name: Run new container
+      shell: |
+        docker run -d -p 80:3000 --name devops_app janhavi001/devops-insights:{{ lookup('env', 'GIT_COMMIT') }}
