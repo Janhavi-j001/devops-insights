@@ -22,13 +22,17 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                sh 'npm install'
+                dir('src') {
+                    sh 'npm install'
+                }
             }
         }
 
         stage('Run Tests') {
             steps {
-                sh 'npm test -- --passWithNoTests'
+                dir('src') {
+                    sh 'npm test -- --passWithNoTests'
+                }
             }
         }
 
