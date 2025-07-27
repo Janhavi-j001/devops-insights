@@ -1,4 +1,5 @@
-- hosts: web
+- name: Deploy Dockerized Node.js app
+  hosts: web
   become: yes
   tasks:
     - name: Install Docker
@@ -7,17 +8,32 @@
         update_cache: yes
         state: present
 
+    - name: Start and enable Docker
+      systemd:
+        name: docker
+        enabled: true
+        state: started
+
     - name: Stop old container if running
       shell: |
         docker ps -q --filter "name=devops_app" | xargs -r docker stop
+      ignore_errors: true
 
     - name: Remove old container if exists
       shell: |
         docker ps -a -q --filter "name=devops_app" | xargs -r docker rm
+      ignore_errors: true
 
     - name: Pull latest image
-      shell: docker pull janhavi001/devops-insights:{{ lookup('env', 'GIT_COMMIT') }}
+      shell: |
+        IMAGE_TAG="{{ lookup('env', 'GIT_COMMIT') | default('latest', true) }}"
+        docker pull janhavi001/devops-insights:$IMAGE_TAG
+      environment:
+        GIT_COMMIT: "{{ lookup('env', 'GIT_COMMIT') | default('latest', true) }}"
 
     - name: Run new container
       shell: |
-        docker run -d -p 80:3000 --name devops_app janhavi001/devops-insights:{{ lookup('env', 'GIT_COMMIT') }}
+        IMAGE_TAG="{{ lookup('env', 'GIT_COMMIT') | default('latest', true) }}"
+        docker run -d -p 80:3000 --name devops_app janhavi001/devops-insights:$IMAGE_TAG
+      environment:
+        GIT_COMMIT: "{{ lookup('env', 'GIT_COMMIT') | default('latest', true) }}"
