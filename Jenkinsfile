@@ -29,11 +29,10 @@ pipeline {
         }
 
         stage('Run Tests') {
-    steps {
-        echo 'Skipping tests for now...'
-    }
-}
-
+            steps {
+                echo 'Skipping tests for now...'
+            }
+        }
 
         stage('Docker Login, Build & Push') {
             steps {
@@ -54,6 +53,13 @@ pipeline {
                     docker rm devops-insights || true
                     docker run -d -p 5000:5000 --name devops-insights $IMAGE
                 '''
+            }
+        }
+
+        stage('Cleanup Old Docker Images') {
+            steps {
+                echo '🧹 Cleaning up dangling Docker images...'
+                sh 'docker image prune -f'
             }
         }
     }
