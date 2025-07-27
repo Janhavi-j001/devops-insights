@@ -51,7 +51,7 @@ pipeline {
                 sh '''
                     docker stop devops-insights || true
                     docker rm devops-insights || true
-                    docker run -d -p 5000:5000 --name devops-insights $IMAGE
+                    docker run -d -p 5000:3000 --name devops-insights $IMAGE
                 '''
             }
         }
