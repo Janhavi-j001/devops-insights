@@ -46,22 +46,18 @@ pipeline {
             }
         }
 
-        stage('Deploy') {
-          steps {
-            sh '''
-                docker stop devops-insights || true
-                docker rm devops-insights || true
-                docker run -d -p 5000:3000 --name devops-insights $IMAGE
-            '''
-        }
-    }
-
-
         stage('Cleanup Old Docker Images') {
             steps {
                 echo '🧹 Cleaning up dangling Docker images...'
                 sh 'docker image prune -f'
             }
+        }
+
+        // Optional future stage
+        stage('Ansible Deploy') {
+             steps {
+                 sh "GIT_COMMIT=${IMAGE_TAG} ansible-playbook -i ansible/hosts.ini ansible/deploy.yml"
+             }
         }
     }
 }
