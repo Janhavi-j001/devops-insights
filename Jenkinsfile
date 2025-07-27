@@ -53,11 +53,15 @@ pipeline {
             }
         }
 
-        // Optional future stage
         stage('Ansible Deploy') {
-             steps {
-                 sh "GIT_COMMIT=${IMAGE_TAG} ansible-playbook -i ansible/hosts.ini ansible/deploy.yml"
-             }
+            steps {
+                withCredentials([sshUserPrivateKey(credentialsId: 'ansible-ssh-key', keyFileVariable: 'SSH_KEY')]) {
+                    sh '''
+                        ssh-keyscan -H 52.66.27.98 >> ~/.ssh/known_hosts
+                        GIT_COMMIT=${IMAGE_TAG} ansible-playbook -i ansible/hosts.ini ansible/deploy.yml --private-key $SSH_KEY
+                    '''
+                }
+            }
         }
     }
 }
