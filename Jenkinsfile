@@ -47,14 +47,15 @@ pipeline {
         }
 
         stage('Deploy') {
-            steps {
-                sh '''
-                    docker stop devops-insights || true
-                    docker rm devops-insights || true
-                    docker run -d -p 5000:3000 --name devops-insights $IMAGE
-                '''
-            }
+          steps {
+            sh '''
+                docker stop devops-insights || true
+                docker rm devops-insights || true
+                docker run -d -p 5000:3000 --name devops-insights $IMAGE
+            '''
         }
+    }
+
 
         stage('Cleanup Old Docker Images') {
             steps {
