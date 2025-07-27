@@ -1,22 +1,67 @@
 pipeline {
-  agent any
+    agent any
 
-  environment {
-    GIT_COMMIT = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-    IMAGE = "janhavi001/devops-insights:${GIT_COMMIT}"
-  }
-
-  stages {
-    stage('Checkout') {
-      steps {
-        git branch: 'main', url: 'https://github.com/Janhavi-j001/devops-insights.git'
-      }
+    tools {
+        nodejs "Node18"
     }
 
-    stage('Build & Push Docker Image') {
-      steps {
-        sh './scripts/build_and_push.sh'
-      }
+    environment {
+        IMAGE_NAME = "janhavi001/devops-insights"
+        IMAGE_TAG = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+        IMAGE = "${IMAGE_NAME}:${IMAGE_TAG}"
     }
-  }
+
+    stages {
+        stage('Clone Repo') {
+            steps {
+                git branch: 'main',
+                    credentialsId: 'github-creds',
+                    url: 'https://github.com/Janhavi-j001/devops-insights.git'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                dir('src') {
+                    sh 'npm install'
+                }
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                echo 'Skipping tests for now...'
+            }
+        }
+
+        stage('Docker Login, Build & Push') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh '''
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        docker build -t $IMAGE .
+                        docker push $IMAGE
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy') {
+          steps {
+            sh '''
+                docker stop devops-insights || true
+                docker rm devops-insights || true
+                docker run -d -p 5000:3000 --name devops-insights $IMAGE
+            '''
+        }
+    }
+
+
+        stage('Cleanup Old Docker Images') {
+            steps {
+                echo '🧹 Cleaning up dangling Docker images...'
+                sh 'docker image prune -f'
+            }
+        }
+    }
 }
