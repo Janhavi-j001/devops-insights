@@ -187,13 +187,16 @@ docker network prune -f
 
 ---
 
-## Pipeline Execution Logs / Screenshots
+## Screenshots
 
 ### Jenkins Pipeline
-![Jenkins Pipeline](Screenshots/Pipeline-View.png)
+![Jenkins Pipeline](Screenshots/Pipeline-View.jpng)
 
 ### Webhook Status
 ![Terraform Apply](Screenshots/Webhook-Status.png)
+
+### Dockerhub pushed images
+![Ansible Playbook](Screenshots/Dockerhub-images.png)
 
 ### Ansible Deployment
 ![Ansible Playbook](Screenshots/Ansible_output.png)
