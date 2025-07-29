@@ -24,9 +24,10 @@
         docker ps -a -q --filter "name=devops_app" | xargs -r docker rm
       ignore_errors: true
 
-    - name: Pull Docker image with tag 7946053
-      shell: docker pull janhavi001/devops-insights:7946053
-
-    - name: Run new container
+    - name: Pull latest Docker image using GIT_COMMIT
       shell: |
-        docker run -d -p 80:3000 --name devops_app janhavi001/devops-insights:7946053
+        docker pull janhavi001/devops-insights:{{ lookup('env', 'GIT_COMMIT') }}
+
+    - name: Run new container with updated image
+      shell: |
+        docker run -d -p 80:3000 --name devops_app janhavi001/devops-insights:{{ lookup('env', 'GIT_COMMIT') }}
