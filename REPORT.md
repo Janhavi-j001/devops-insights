@@ -153,13 +153,13 @@ Both scripts include strict error handling and verbose logging.
 ## Pipeline Execution Logs / Screenshots
 
 ### Jenkins CI/CD Execution
-![Jenkins Pipeline](screenshots/jenkins_pipeline.png)
+![Jenkins Pipeline](screenshots/Pipeline-View.png)
 
 ### Terraform Apply Output
 ![Terraform Apply](screenshots/terraform_apply.png)
 
 ### Ansible Deployment
-![Ansible Playbook](screenshots/ansible_output.png)
+![Ansible Playbook](screenshots/Ansible_output.png)
 
 ### Live App in Browser
-![Node.js App Running](screenshots/app_broswer_view.png)
+![Node.js App Running](screenshots/Website-view.png)
