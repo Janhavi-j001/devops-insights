@@ -190,7 +190,7 @@ docker network prune -f
 ## Screenshots
 
 ### Jenkins Pipeline
-![Jenkins Pipeline](Screenshots/Pipeline-View.jpng)
+![Jenkins Pipeline](Screenshots/Pipeline-View.jpeg)
 
 ### Webhook Status
 ![Terraform Apply](Screenshots/Webhook-Status.png)
@@ -199,7 +199,7 @@ docker network prune -f
 ![Ansible Playbook](Screenshots/Dockerhub-images.png)
 
 ### Ansible Deployment
-![Ansible Playbook](Screenshots/Ansible_output.png)
+![Ansible Playbook](Screenshots/Ansible-output.png)
 
 ### Live App in Browser
 ![Node.js App Running](Screenshots/Website-view.png)
