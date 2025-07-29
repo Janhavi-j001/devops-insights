@@ -3,46 +3,65 @@
 ## Architecture Diagram
 
 ```
-+--------------------+
-|    GitHub Repo     |
-|(Code & Jenkinsfile)|
-+--------------------+
-          |
-          v
-+--------------------+
-|      Jenkins       |
-|  (CI/CD Pipeline)  |
-+--------------------+
-          |
-          v
-+--------------------+
-|     Terraform      |
-| Provision AWS Infra|
-+--------------------+
-          |
-          v
-+--------------------+
-|      AWS EC2       |
-| (t2.micro instance)|
-+--------------------+
-          |
-          v
-+--------------------+
-|     Ansible        |
-| Configure & Deploy |
-+--------------------+
-          |
-          v
-+--------------------+
-|     Docker         |
-| Containerized App  |
-+--------------------+
-          |
-          v
-+--------------------+
-|  Node.js App Live  |
-|   (Port 80→3000)   |
-+--------------------+
++-------------------------+
+|      GitHub Repo        |
+|  (Code & Jenkinsfile)   |
++-----------+-------------+
+            |
+            | Push / PR
+            v
++-------------------------+
+|     GitHub Webhook      |
+| → Triggers Jenkins CI/CD|
++-----------+-------------+
+            |
+            v
++-------------------------+
+|         Jenkins         |
+|   (CI/CD Pipeline)      |
+|       port:8080         |
++-----------+-------------+
+            |
+            v
++-------------------------+
+|        Docker           |
+| Build & Push Image      |
+| To DockerHub            |
++-----------+-------------+
+            |
+            v
++-------------------------+
+|       Terraform         |
+| Provision AWS Infra     |
+| - EC2, SG, VPC, EIP     |
++-----------+-------------+
+            |
+            v
++-------------------------+
+|         AWS EC2         |
+|   (t2.micro Instance)   |
++-----------+-------------+
+            |
+            v
++-------------------------+
+|         Ansible         |
+| - SSH into EC2          |
+| - Install Docker        |
+| - Pull & Run App Image  |
++-----------+-------------+
+            |
+            v
++-------------------------+
+|     Docker Container    |
+|        Node.js App      |
++-------------------------+
+            |
+            v
++-------------------------+
+|  👩‍💻 Website View at     |
+|   http://52.66.27.98/   |
++-------------------------+
+
 ```
 
 ---
@@ -89,31 +108,41 @@ Uses input variables:
 
 ### Jenkinsfile Stages:
 
-1. **Checkout Code** from `develop`
-2. **Build & Dockerize**:
-   ```bash
-   ./scripts/build_and_push.sh
-   ```
-   - Builds image: `docker.io/pborade90/myapp:<commit_hash>`
-   - Pushes to DockerHub
+1. **Checkout** – Pulls code from `develop` branch  
+2. **Build & Push Docker Image** –  
+   - Tags with `GIT_COMMIT`  
+   - Pushes to DockerHub  
+3. **Terraform Apply** –  
+   - Provisions EC2 infra  
+4. **Ansible Deploy** –  
+   - Stops/removes old container  
+   - Pulls latest image  
+   - Runs new container on EC2
 
-3. **Terraform Apply**:
-   - Creates or updates infra via `terraform apply`
+---
 
-4. **Ansible Deployment**:
-   - Installs Docker on EC2
-   - Pulls container image from DockerHub
-   - Runs container mapping port 80 to 3000
+## 🧪 Shell Scripting Summary
+
+- **build_and_push.sh** – Builds Docker image with commit tag and pushes to DockerHub
+- **cleanup.sh** – Removes unused containers/images/networks from local system
+
+---
+
+## 🌍 Webhook Setup using ngrok
+
+- ngrok started with:
+  ```bash
+  ngrok http 8080
 
 ### Sample Image Tag
 
 ```bash
-IMAGE="pborade90/myapp:$GIT_COMMIT"
+IMAGE="Janhavi001/devops-insights:$GIT_COMMIT"
 ```
 
 ### Trigger Example
 
-Push a change to `src/index.js` → merge into `develop` → pipeline auto-triggers.
+Push a change to `src/public/index.js` → merge into `develop` → pipeline auto-triggers.
 
 ---
 
@@ -125,41 +154,49 @@ Push a change to `src/index.js` → merge into `develop` → pipeline auto-trigg
 #!/usr/bin/env bash
 set -euo pipefail
 
-IMAGE="yourdockerhubusername/myapp:$GIT_COMMIT"
-echo "Building Docker image $IMAGE"
+# Get the latest commit short SHA
+GIT_COMMIT=$(git rev-parse --short HEAD)
+IMAGE="$DOCKER_USERNAME/devops-nodejs:$GIT_COMMIT"
+
+echo "🔧 Building image: $IMAGE"
 docker build -t $IMAGE .
-echo "Pushing Docker image to DockerHub..."
+
+echo "🔐 Logging in to DockerHub..."
+echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+
+echo "📤 Pushing image to DockerHub..."
 docker push $IMAGE
+
+echo "✅ Docker image pushed successfully!"
+
 ```
 
 ### `scripts/cleanup.sh`
 
 ```bash
+#Cleanup Old Docker Images (locally or on EC2)
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "[CLEANUP] Removing dangling images..."
-docker image prune -f
-
-echo "[CLEANUP] Removing unused containers/networks..."
+echo "🧹 Cleaning up Docker images, containers, networks..."
 docker container prune -f
+docker image prune -f
 docker network prune -f
-```
 
-Both scripts include strict error handling and verbose logging.
+```
 
 ---
 
 ## Pipeline Execution Logs / Screenshots
 
-### Jenkins CI/CD Execution
-![Jenkins Pipeline](screenshots/Pipeline-View.png)
+### Jenkins Pipeline
+![Jenkins Pipeline](Screenshots/Pipeline-View.png)
 
-### Terraform Apply Output
-![Terraform Apply](screenshots/terraform_apply.png)
+### Webhook Status
+![Terraform Apply](Screenshots/Webhook-Status.png)
 
 ### Ansible Deployment
-![Ansible Playbook](screenshots/Ansible_output.png)
+![Ansible Playbook](Screenshots/Ansible_output.png)
 
 ### Live App in Browser
-![Node.js App Running](screenshots/Website-view.png)
+![Node.js App Running](Screenshots/Website-view.png)
