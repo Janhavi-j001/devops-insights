@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        nodejs "Node18"  // Make sure this tool is configured in Jenkins
+        nodejs "Node18"  
     }
 
     environment {
@@ -35,7 +35,6 @@ pipeline {
         stage('Docker Login, Build & Push') {
             steps {
                 script {
-                    // Get the short Git commit hash
                     def IMAGE_TAG = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
                     env.IMAGE_TAG = IMAGE_TAG
                     env.IMAGE = "${env.IMAGE_NAME}:${IMAGE_TAG}"
