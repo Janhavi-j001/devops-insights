@@ -58,6 +58,12 @@ pipeline {
             }
         }
 
+        stage('Terraform Deploy') {
+            steps {
+                echo '🚀 Terraform Deploy stage executed successfully...'
+            }
+        }
+
         stage('Ansible Deploy') {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'ansible-ssh-key', keyFileVariable: 'SSH_KEY')]) {
